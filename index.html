@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <!-- Meta tags for social media banners, these should be filled in appropriatly as they are your "business card" -->
+  <!-- Replace the content tag with appropriate information -->
+  <meta name="description" content="Generative Detail Enhancement for Physically Based Materials">
+
+  <!-- Path to banner image, should be in the path listed below. Optimal dimenssions are 1200X630-->
+  <!-- <meta property="og:image" content="static/image/your_banner_image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+
+
+  <meta name="twitter:title" content="TWITTER BANNER TITLE META TAG">
+  <meta name="twitter:description" content="TWITTER BANNER DESCRIPTION META TAG"> -->
+  <!-- Path to banner image, should be in the path listed below. Optimal dimenssions are 1200X600-->
+  <!-- <meta name="twitter:image" content="static/images/your_twitter_banner_image.png">
+  <meta name="twitter:card" content="summary_large_image"> -->
+  <!-- Keywords for your paper to be indexed by-->
+  <meta name="keywords" content="Multi-view generation, diffusion models, 3d diffusion models, Photo-realistic rendering, Ray Tracing, Global Illumination, Differentiable Rendering, Neural Rendering, Neural Radiance Fields">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <script src="https://d3js.org/d3.v4.js"></script>
+  <script src="https://unpkg.com/d3-simple-slider"></script>
+  
+
+  <title>Generative Detail Enhancement for Physically Based Materials</title>
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
+
+  <link rel="stylesheet" href="static/css/bulma.min.css">
+  <link rel="stylesheet" href="static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="static/css/fontawesome.all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="static/css/index.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="static/js/fontawesome.all.min.js"></script>
+  <script src="static/js/bulma-carousel.min.js"></script>
+  <script src="static/js/bulma-slider.min.js"></script>
+  <script src="static/js/index.js"></script>
+
+  
+
+  
+  <!-- Attention biasing style -->
+  <style>
+    h2 {
+      text-align: center;
+    }    
+    .slider-container {
+      width: 45%;
+    }
+    .image-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    img {
+      max-width: 100%;
+      max-height: 300px;
+    }
+  </style>
+
+  <style>
+    .image-slider-container {
+      margin-top: 20px;
+      text-align: center; /* Center heading and text */
+    }
+    
+    .image-slider-container input[type="range"],
+    .image-slider-container span#floatValue {
+      display: inline-block;
+      margin-top: 10px;
+    }
+    
+    /* Optional: Center the image row too */
+    .image-row {
+      display: flex;
+      justify-content: center; /* <-- Center the images horizontally */
+      gap: 10px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+  </style>
+
+  <!-- 36 view style -->
+  <style>
+    .view-comparison-container {
+      margin-top: 40px;
+      text-align: center; /* Center contents */
+    }
+
+    .view-comparison-container input[type="range"] {
+      margin: 0 auto; /* Center slider */
+      display: block;
+    }
+    
+    .view-images {
+      display: flex;
+      justify-content: center; /* Center horizontally */
+      gap: 20px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+  
+    .view-images img {
+      max-height: 500px;
+      height: auto;
+      width: auto;
+      aspect-ratio: 1 / 1;
+      object-fit: contain;
+      border: 1px solid #ccc;
+    }
+
+  </style>
+
+
+  <!-- Results style -->
+  <style>
+    .scene-slider-container {
+      margin-top: 40px;
+    }
+  
+    .scene-controls {
+      margin-bottom: 15px;
+      display: flex;
+      gap: 20px;
+      justify-content: center; /* Center row items */
+      align-items: center;
+      flex-wrap: wrap;
+    }
+  
+    .scene-images,
+    .scene-material-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+      flex-wrap: nowrap;
+      justify-content: space-between;
+    }
+  
+    .image-box {
+      width: 24%;
+      text-align: center;
+    }
+  
+    .scene-material-row .image-box {
+      width: 15.5%;
+    }
+  
+    .image-box img {
+      max-width: 100%;
+      height: auto;
+      object-fit: contain;
+      border: 1px solid #ccc;
+    }
+  </style>
+  
+ <!-- Baseline style -->
+
+
+ <style>
+  .baseline-comparison-container {
+    margin-top: 60px;
+  }
+
+  .comparison-controls {
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: center;  /* This centers the slider row */
+    gap: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .comparison-row {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 10px;
+    justify-content: space-between;
+    margin-top: 10px;
+  }
+
+  .comparison-box {
+    width: 32%;
+    text-align: center;
+  }
+
+  .comparison-box img {
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
+    border: 1px solid #ccc;
+  }
+
+  .recovered-comparison-box {
+    width: 24%;
+    text-align: center;
+  }
+
+  .recovered-comparison-box img {
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
+    border: 1px solid #ccc;
+  }
+</style>
+
+<!-- Additional hparams -->
+<style>
+  .combined-slider-container {
+    margin-top: 40px;
+  }
+
+  .slider-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center; /* Center each row horizontally */
+    margin-bottom: 20px;
+  }
+
+  .slider-row {
+    display: grid;
+    grid-template-columns: 200px 100px 1fr; /* Label, number, slider */
+    align-items: center;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 10px;
+  }
+  
+  .slider-row label {
+    text-align: left;
+  }
+  
+  .slider-value {
+    text-align: right;
+    display: inline-block;
+    width: 100%;
+  }
+    
+  .image-display {
+    display: flex;
+    gap: 20px;
+    justify-content: center; /* Center horizontally */
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+
+  .image-display img {
+    max-height: 500px;
+    height: auto;
+    width: auto;
+    aspect-ratio: 1 / 1;
+    object-fit: contain;
+    border: 1px solid #ccc;
+  }
+  </style>
+
+
+
+
+</head>
+
+<body>
+
+
+  <section class="hero">
+    <div class="hero-body">
+      <div class="container is-max-desktop">
+        <div class="columns is-centered">
+          <div class="column has-text-centered">
+            <h1 class="title is-1 publication-title">Generative Detail Enhancement for Physically Based Materials</h1>
+            <div class="is-size-5 publication-authors">
+              <!-- Paper authors -->
+              <span class="author-block"><a href="https://www.cs.umd.edu/~saeedhd" target="_blank">Saeed Hadadan</a><sup>1,2</sup>,</span>
+              <span class="author-block"><a href="https://benedikt-bitterli.me/" target="_blank">Benedikt Bitterli</a><sup>2</sup>,</span>
+              <span class="author-block"><a href="https://tizianzeltner.com" target="_blank">Tizian Zeltner</a><sup>2</sup>,</span>
+              <span class="author-block"><a href="https://research.nvidia.com/person/jan-novak" target="_blank">Jan Novák</a><sup>2</sup>,</span>
+              <span class="author-block"><a href="https://research.nvidia.com/person/jacob-munkberg" target="_blank">Jacob Munkberg</a><sup>2</sup>,</span>
+              <span class="author-block"><a href="https://research.nvidia.com/person/jon-hasselgren" target="_blank">Jon Hasselgren</a><sup>2</sup>,</span>
+              <span class="author-block"><a href="https://research.nvidia.com/person/bart-wronski" target="_blank">Bartlomiej Wronski</a><sup>2</sup>,</span>
+              <span class="author-block"><a href="https://www.cs.umd.edu/~zwicker/" target="_blank">Matthias Zwicker</a><sup>1</sup></span>
+            </div>
+
+            <div class="is-size-5 publication-authors">
+              <span class="author-block">
+                <sup>1</sup>University of Maryland, College Park<br>
+                <sup>2</sup>NVIDIA<br>
+                SIGGRAPH 2025 Conference Proceedings</span>
+            </div>
+
+            <div class="column has-text-centered">
+              <div class="publication-links">
+                <!-- Arxiv link -->
+                <span class="link-block">
+                  <a href="https://arxiv.org/abs/2502.13994" target="_blank"
+                    class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon">
+                      <i class="fas fa-file-pdf"></i>
+                    </span>
+                    <span>Paper</span>
+                  </a>
+                </span>
+
+                <!-- Supplementary PDF link -->
+                <!-- <span class="link-block">
+                  <a href="javascript:" target="_blank"
+                    class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon">
+                      <i class="fas fa-file-pdf"></i>
+                    </span>
+                    <span>Supplementary document</sup></span>
+                  </a>
+                </span> -->
+
+                <!-- Publisher version link -->
+                <span class="link-block">
+                  <a href="https://doi.org/10.1145/3721238.3730751" target="_blank"
+                    class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon">
+                      <i class="ai ai-acm"></i>
+                    </span>
+                    <span>Publisher version</sup></span>
+                  </a>
+                </span>
+
+
+                <!-- Github link -->
+                <span class="link-block">
+                  <a href="" target="_blank"
+                    class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon">
+                      <i class="fab fa-github"></i>
+                    </span>
+                    <span>Code (Coming Soon)</span>
+                  </a>
+                </span>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Teaser video-->
+  <section class="hero teaser">
+    <div class="container is-max-desktop">
+      <div class="hero-body">
+        <video poster="" id="tree" autoplay controls muted loop height="100%">
+          <!-- Your video here -->
+          <source src="static/videos/Supp video generative detail.mp4" type=video/mp4>
+        </video>
+        <h2 class="subtitle has-text-centered">
+          Supplemenatry video
+        </h2>
+      </div>
+    </div>
+  </section>
+  <!-- End teaser video -->
+
+
+  <!-- Paper abstract -->
+  <section class="section hero is-light">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-four-fifths">
+          <h2 class="title is-3">Abstract</h2>
+          <div class="content has-text-justified">
+            <p>
+              We present a tool for enhancing the detail of physically based materials using an off-the-shelf diffusion model and inverse rendering. Our goal is to enhance the visual fidelity of materials with detail that is often tedious to author, by adding signs of wear, aging, weathering, etc. As these appearance details are often rooted in real-world processes, we leverage a generative image model trained on a large dataset of natural images with corresponding visuals in context. Starting with a given geometry, UV mapping, and basic appearance, we render multiple views of the object. We use these views, together with an appearance-defining text prompt, to condition a diffusion model. The details it generates are then backpropagated from the enhanced images to the material parameters via inverse differentiable rendering. For inverse rendering to be successful, the generated appearance has to be consistent across all the images. We propose two priors to address the multi-view consistency of the diffusion model. First, we ensure that the initial noise that seeds the diffusion process is itself consistent across views by integrating it from a view-independent UV space. Second, we enforce geometric consistency by biasing the attention mechanism via a projective constraint so that pixels attend strongly to their corresponding pixel locations in other views. Our approach does not require any training or finetuning of the diffusion model, is agnostic of the material model used, and the enhanced material properties, i.e., 2D PBR textures, can be further edited by artists.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- End paper abstract -->
+
+
+
+<!-- Image carousel -->
+<section class="hero is-small">
+  <div class="hero-body">
+    <div class="container">
+      <!-- <div id="results-carousel" class="carousel results-carousel"> -->
+        <div class="item">
+          <img loading="lazy" src="static/images/contrib.jpeg" alt="Teaser Image" />
+          <h2 class="subtitle has-text-justified">
+            <b>(Left)</b> We embed the input noise within the UV space of the object to obtain a multi-view correlated noise field that could be rendered from any view. <b>(Right)</b> we bias the attentions based on projections in 3D. We project every latent pixel in view B, to the corresponding point in view A to obtain correspondences. These correspondences then are used to bias the self-attention module. 
+          </h2>
+        </div>
+        <br>
+        <br>
+        <br>
+                
+        
+        <div class="image-slider-container">
+          <h2>Attention Biasing Strength:</h2>
+          <input type="range" id="floatSlider" min="0" max="6" step="1">
+          <span id="floatValue">initial</span>
+        
+          <div class="image-row">
+            <img loading="lazy" id="img0" src="static/images/hparams_adjusting/initial_0.jpg" alt="Image 0">
+            <img loading="lazy" id="img1" src="static/images/hparams_adjusting/initial_1.jpg" alt="Image 1">
+            <img loading="lazy" id="img2" src="static/images/hparams_adjusting/initial_2.jpg" alt="Image 2">
+            <img loading="lazy" id="img3" src="static/images/hparams_adjusting/initial_3.jpg" alt="Image 3">
+          </div>
+        </div>
+        
+        <script>
+          const floatValues = ['initial', 0.0, 0.6, 1.2, 1.8, 2.4, 3.0];
+          const floatSlider = document.getElementById('floatSlider');
+          const floatValueDisplay = document.getElementById('floatValue');
+        
+          const imageElements = [
+            document.getElementById('img0'),
+            document.getElementById('img1'),
+            document.getElementById('img2'),
+            document.getElementById('img3')
+          ];
+        
+          floatSlider.max = floatValues.length - 1;
+          floatSlider.value = 0;
+        
+          function getCurrentFloatStr() {
+            const val = floatValues[parseInt(floatSlider.value)];
+            return (typeof val === 'number') ? val.toFixed(1) : val;
+          }
+        
+          function updateImages() {
+            const valStr = getCurrentFloatStr();
+            floatValueDisplay.textContent = valStr;
+            for (let i = 0; i < imageElements.length; i++) {
+              imageElements[i].src = `static/images/hparams_adjusting/${valStr}_${i}.jpg`;
+            }
+          }
+        
+          floatSlider.addEventListener('input', updateImages);
+          updateImages();
+        </script>
+        
+
+        
+        <div class="view-comparison-container">
+          <h2>36 view generation (Diffusion images (left) - UV-warped (right)):</h2>
+          <input type="range" id="viewSlider" min="0" max="35" step="1">
+          <span id="viewValue">0</span>
+        
+          <div class="view-images">
+            <img loading="lazy" id="originalViewImg" src="static/images/36views/views/00000/0000.png" alt="Original View">
+            <img loading="lazy" id="uvWarpedImg" src="static/images/36views/uv_warped/00000/0000.png" alt="UV Warped View">
+          </div>
+        </div>
+        
+        <script>
+          const viewSlider = document.getElementById('viewSlider');
+          const viewValueDisplay = document.getElementById('viewValue');
+          const uvWarpedImg = document.getElementById('uvWarpedImg');
+          const originalViewImg = document.getElementById('originalViewImg');
+        
+          function pad4(n) {
+            return n.toString().padStart(4, '0');
+          }
+        
+          function updateViewComparison() {
+            const viewIdx = parseInt(viewSlider.value);
+            const paddedIdx = pad4(viewIdx);
+            viewValueDisplay.textContent = viewIdx;
+        
+            originalViewImg.src = `static/images/36views/views/00000/${paddedIdx}.png`;
+            uvWarpedImg.src = `static/images/36views/uv_warped/00000/${paddedIdx}.png`;
+          }
+        
+          viewSlider.addEventListener('input', updateViewComparison);
+          updateViewComparison();
+        </script>
+
+
+
+
+        
+
+
+
+
+        <div class="scene-slider-container">
+          <h2 class="title is-4">Results</h2>
+          <div class="scene-controls">
+            <label for="sceneSelect">Scene:</label>
+            <select id="sceneSelect">
+              <option value="woodenbox">Wooden Box</option>
+              <option value="AC">AC</option>
+              <option value="kettle">Kettle</option>
+              <option value="Statue">Statue</option>
+              <option value="pot">Pot</option>
+              <option value="pots">Pottery Vases</option>
+              <option value="briefcase">Briefcase</option>
+              <option value="david">David Bust</option>
+            </select>
+        
+            <label for="sceneViewSlider">View Index:</label>
+            <input type="range" id="sceneViewSlider" min="0" max="10" step="1" value="0">
+            <span id="sceneViewIndex">0</span>
+          </div>
+        
+          <!-- Row 1: Main images -->
+          <div class="scene-images">
+            <div class="image-box">
+              <p><strong>Initial</strong></p>
+              <img id="sceneInitial" src="" alt="Initial">
+            </div>
+            <div class="image-box">
+              <p><strong>Diffused</strong></p>
+              <img id="sceneDiffused" src="" alt="Diffused">
+            </div>
+            <div class="image-box">
+              <p><strong>Recovered</strong></p>
+              <img id="sceneRecovered" src="" alt="Recovered">
+            </div>
+            <div class="image-box">
+              <p><strong>Relit</strong></p>
+              <img id="sceneRelit" src="" alt="Relit">
+            </div>
+          </div>
+        
+          <!-- Row 2: Material maps -->
+          <div class="scene-material-row">
+            <div class="image-box">
+              <p><strong>Albedo (Init)</strong></p>
+              <img id="albedoInitial" src="" alt="Albedo Initial">
+            </div>
+            <div class="image-box">
+              <p><strong>Albedo (Rec)</strong></p>
+              <img id="albedoRecovered" src="" alt="Albedo Recovered">
+            </div>
+            <div class="image-box">
+              <p><strong>Roughness (Init)</strong></p>
+              <img id="roughnessInitial" src="" alt="Roughness Initial">
+            </div>
+            <div class="image-box">
+              <p><strong>Roughness (Rec)</strong></p>
+              <img id="roughnessRecovered" src="" alt="Roughness Recovered">
+            </div>
+            <div class="image-box">
+              <p><strong>Normals (Init)</strong></p>
+              <img id="normalInitial" src="" alt="Normal Initial">
+            </div>
+            <div class="image-box">
+              <p><strong>Normals (Rec)</strong></p>
+              <img id="normalRecovered" src="" alt="Normal Recovered">
+            </div>
+          </div>
+        </div>
+        
+        <script>
+          const sceneConfig = {
+            woodenbox: 16,
+            Statue: 9,
+            AC: 9,
+            kettle: 9,
+            pot: 9,
+            pots: 16,
+            briefcase: 9,
+            david: 9,
+          };
+        
+          const sceneSelect = document.getElementById("sceneSelect");
+          const sceneViewSlider = document.getElementById("sceneViewSlider");
+          const sceneViewIndex = document.getElementById("sceneViewIndex");
+        
+          const sceneInitial = document.getElementById("sceneInitial");
+          const sceneDiffused = document.getElementById("sceneDiffused");
+          const sceneRecovered = document.getElementById("sceneRecovered");
+          const sceneRelit = document.getElementById("sceneRelit");
+        
+          const albedoInitial = document.getElementById("albedoInitial");
+          const albedoRecovered = document.getElementById("albedoRecovered");
+          const roughnessInitial = document.getElementById("roughnessInitial");
+          const roughnessRecovered = document.getElementById("roughnessRecovered");
+          const normalInitial = document.getElementById("normalInitial");
+          const normalRecovered = document.getElementById("normalRecovered");
+        
+          function pad3(n) {
+            return n.toString().padStart(3, '0');
+          }
+        
+          function updateSceneImages() {
+            const scene = sceneSelect.value;
+            const idx = parseInt(sceneViewSlider.value);
+            const paddedIdx = pad3(idx);
+            sceneViewIndex.textContent = idx;
+        
+            const base = `static/images/results/${scene}`;
+            sceneInitial.src = `${base}/initial_rendering_${paddedIdx}.jpg`;
+            sceneDiffused.src = `${base}/diffused_${paddedIdx}.jpg`;
+            sceneRecovered.src = `${base}/recovered_default_${paddedIdx}.jpg`;
+            sceneRelit.src = `${base}/recovered_sunrise_${paddedIdx}.jpg`;
+        
+            albedoInitial.src = `${base}/initial_albedo_${paddedIdx}.jpg`;
+            albedoRecovered.src = `${base}/recovered_albedo_${paddedIdx}.jpg`;
+        
+            roughnessInitial.src = `${base}/initial_roughness_${paddedIdx}.jpg`;
+            roughnessRecovered.src = `${base}/recovered_roughness_${paddedIdx}.jpg`;
+        
+            normalInitial.src = `${base}/initial_pnormals_${paddedIdx}.jpg`;
+            normalRecovered.src = `${base}/recovered_pnormals_${paddedIdx}.jpg`;
+          }
+        
+          sceneSelect.addEventListener("change", () => {
+            const max = sceneConfig[sceneSelect.value] || 36;
+            sceneViewSlider.max = max - 1;
+            sceneViewSlider.value = 0;
+            updateSceneImages();
+          });
+        
+          sceneViewSlider.addEventListener("input", updateSceneImages);
+        
+          // Initialize on page load
+          sceneSelect.dispatchEvent(new Event("change"));
+        </script>
+
+        
+
+        
+        <div class="baseline-comparison-container">
+          <h2 class="title is-4">Baseline Comparison</h2>
+        
+          <div class="comparison-controls">
+            <label for="baselineSceneSelect">Scene:</label>
+            <select id="baselineSceneSelect">
+              <option value="Statue">Statue</option>
+              <option value="briefcase">Briefcase</option>
+              <option value="woodenbox">Wooden Box</option>
+              <option value="kettle">Kettle</option>
+              <option value="david">David Bust</option>
+            </select>
+        
+            <label for="baselineViewSlider">View Index:</label>
+            <input type="range" id="baselineViewSlider" min="0" max="10" step="1" value="0">
+            <span id="baselineViewIndex">0</span>
+          </div>
+        
+          <!-- Row 1: Ours vs TexPainter vs RGB<->X -->
+          <div class="comparison-row">
+            <div class="comparison-box">
+              <p><strong>Ours (Diffused)</strong></p>
+              <img loading="lazy" id="oursDiffused" src="" alt="Ours Diffused">
+            </div>
+            <div class="comparison-box">
+              <p><strong>TexPainter (Diffused)</strong></p>
+              <img loading="lazy" id="texPainter" src="" alt="TexPainter Diffused">
+            </div>
+            <div class="comparison-box">
+              <p><strong>RGB↔X (Diffused)</strong></p>
+              <img loading="lazy" id="rgbxDiffused" src="" alt="RGBX Diffused">
+            </div>
+          </div>
+        
+          <!-- Row 2: Recovered comparisons -->
+          <div class="comparison-row" style="margin-top: 20px;">
+            <div class="recovered-comparison-box">
+              <p><strong>Ours (Recovered)</strong></p>
+              <img loading="lazy" id="oursRecovered" src="" alt="Ours Recovered">
+            </div>
+            <div class="recovered-comparison-box">
+              <p><strong>Paint-it</strong></p>
+              <img loading="lazy" id="paintIt" src="" alt="Paint-it">
+            </div>
+            <div class="recovered-comparison-box">
+              <p><strong>DreamMat</strong></p>
+              <img loading="lazy" id="dreamMat" src="" alt="DreamMat">
+            </div>
+            <div class="recovered-comparison-box">
+              <p><strong>TexPainter (Recovered)</strong></p>
+              <img loading="lazy" id="texPainterRecovered" src="" alt="TexPainter Recovered">
+            </div>
+          </div>
+        </div>
+        
+        <script>
+          const baselineSceneConfig = {
+            woodenbox: 16,
+            Statue: 9,
+            AC: 9,
+            kettle: 9,
+            pot: 9,
+            pots: 16,
+            briefcase: 9,
+            david: 9,
+          };
+        
+          const baselineSceneSelect = document.getElementById("baselineSceneSelect");
+          const baselineViewSlider = document.getElementById("baselineViewSlider");
+          const baselineViewIndex = document.getElementById("baselineViewIndex");
+        
+          const oursDiffused = document.getElementById("oursDiffused");
+          const texPainter = document.getElementById("texPainter");
+          const rgbxDiffused = document.getElementById("rgbxDiffused");
+        
+          const oursRecovered = document.getElementById("oursRecovered");
+          const paintIt = document.getElementById("paintIt");
+          const dreamMat = document.getElementById("dreamMat");
+          const texPainterRecovered = document.getElementById("texPainterRecovered");
+        
+          function pad3(n) {
+            return n.toString().padStart(3, '0');
+          }
+        
+          function pad4(n) {
+            return n.toString().padStart(4, '0');
+          }
+        
+          function updateBaselineComparison() {
+            const scene = baselineSceneSelect.value;
+            const idx = parseInt(baselineViewSlider.value);
+            const paddedIdx = pad3(idx);
+            const padded4Idx = pad4(idx);
+            baselineViewIndex.textContent = idx;
+        
+            const base = `static/images/results/${scene}`;
+            const base_baseline = `static/images/baselines`;
+        
+            // Row 1: Diffused comparisons
+            oursDiffused.src = `${base}/diffused_${paddedIdx}.jpg`;
+            texPainter.src = `${base_baseline}/texpainter/${scene}/diffusion/${padded4Idx}.jpg`;
+            rgbxDiffused.src = `${base_baseline}/rgbx/${scene}/rendering/${padded4Idx}.jpg`;
+        
+            // Row 2: Recovered comparisons
+            oursRecovered.src = `${base}/recovered_default_${paddedIdx}.jpg`;
+            paintIt.src = `${base_baseline}/paintit/${scene}/rendering/${padded4Idx}.jpg`;
+            dreamMat.src = `${base_baseline}/dreammat/${scene}/rendering/${padded4Idx}.jpg`;
+            texPainterRecovered.src = `${base_baseline}/texpainter/${scene}/rendering/${padded4Idx}.jpg`;
+          }
+        
+          baselineSceneSelect.addEventListener("change", () => {
+            const max = baselineSceneConfig[baselineSceneSelect.value] || 36;
+            baselineViewSlider.max = max - 1;
+            baselineViewSlider.value = 0;
+            updateBaselineComparison();
+          });
+        
+          baselineViewSlider.addEventListener("input", updateBaselineComparison);
+        
+          // Initialize
+          baselineSceneSelect.dispatchEvent(new Event("change"));
+        </script>
+        
+        
+
+
+        <div class="combined-slider-container">
+          <h2 class="title is-4">Additional hyper-parameters</h2>
+        
+          <div class="slider-controls">
+            <div class="slider-row">
+              <label for="multiSceneSelect">Scene:</label>
+              <select id="multiSceneSelect">
+                <option value="Statue">Statue</option>
+                <option value="woodenbox">Wooden Box</option>
+              </select>
+            </div>
+        
+            <div class="slider-row">
+              <label for="cfgSlider">Classifier free guidance:</label>
+              <span id="cfgValue" class="slider-value">14.5</span>
+              <input type="range" id="cfgSlider">
+            </div>
+            
+            <div class="slider-row">
+              <label for="strengthSlider">Strength:</label>
+              <span id="strengthValue" class="slider-value">0.4</span>
+              <input type="range" id="strengthSlider">
+            </div>
+            
+            <div class="slider-row">
+              <label for="scaleSlider">CNet Tile Scale:</label>
+              <span id="scaleValue" class="slider-value">0.4</span>
+              <input type="range" id="scaleSlider">
+            </div>
+                      </div>
+        
+          <div class="image-display">
+            <img loading="lazy" id="image001" src="" alt="View 001">
+            <img loading="lazy" id="image006" src="" alt="View 006">
+          </div>
+        </div>
+        
+        <script>
+          const sceneConfigs = {
+            woodenbox: {
+              cfgValues: [4.0, 7.5, 11.0, 14.5, 18.0, 21.5, 25.0],
+              strengthValues: [0.2, 0.4, 0.6, 0.8, 1.0],
+              scaleValues: [0.0, 0.2, 0.4, 0.6, 0.8, 1.0],
+              default: { cfg: 7.5, strength: 1.0, scale: 1.0}
+            },
+            Statue: {
+              cfgValues: [4.0, 7.5, 11.0, 14.5, 18.0, 21.5, 25.0],
+              strengthValues: [0.2, 0.4, 0.6, 0.8, 1.0],
+              scaleValues: [0.0, 0.2, 0.4, 0.6, 0.8, 1.0],
+              default: { cfg: 11.0, strength: 1.0, scale: 0.8}
+            }
+          };
+        
+          const sliders = {
+            cfg: document.getElementById("cfgSlider"),
+            strength: document.getElementById("strengthSlider"),
+            scale: document.getElementById("scaleSlider")
+          };
+        
+          const values = {
+            cfg: document.getElementById("cfgValue"),
+            strength: document.getElementById("strengthValue"),
+            scale: document.getElementById("scaleValue")
+          };
+        
+          const image001 = document.getElementById("image001");
+          const image006 = document.getElementById("image006");
+          const multisceneSelect = document.getElementById("multiSceneSelect");
+          let currentScene = multisceneSelect.value;
+        
+          function setSliderOptions(slider, list) {
+            slider.min = 0;
+            slider.max = list.length - 1;
+            slider.step = 1;
+          }
+        
+          function updateUI(cfg, strength, scale) {
+            values.cfg.textContent = cfg;
+            values.strength.textContent = strength;
+            values.scale.textContent = scale;
+        
+            const config = sceneConfigs[currentScene];
+            sliders.cfg.value = config.cfgValues.indexOf(cfg);
+            sliders.strength.value = config.strengthValues.indexOf(strength);
+            sliders.scale.value = config.scaleValues.indexOf(scale);
+          }
+        
+          function showImages(scene, prefix, val) {
+            const valStr = parseFloat(val).toFixed(1);  // Force one decimal digit
+            const base = `static/images/secondary_hparams/${scene}/${prefix}_${valStr}`;
+            image001.src = `${base}_001.jpg`;
+            image006.src = `${base}_006.jpg`;
+          }
+                  
+          function handleSlider(paramChanged) {
+            const config = sceneConfigs[currentScene];
+            const def = config.default;
+        
+            let paramVal, prefix;
+        
+            if (paramChanged === "cfg") {
+              paramVal = config.cfgValues[parseInt(sliders.cfg.value)];
+              prefix = "guidance";
+              updateUI(paramVal, def.strength, def.scale);
+            } else if (paramChanged === "strength") {
+              paramVal = config.strengthValues[parseInt(sliders.strength.value)];
+              prefix = "strength";
+              updateUI(def.cfg, paramVal, def.scale);
+            } else if (paramChanged === "scale") {
+              paramVal = config.scaleValues[parseInt(sliders.scale.value)];
+              prefix = "tilescale";
+              updateUI(def.cfg, def.strength, paramVal);
+            }
+        
+            showImages(currentScene, prefix, paramVal);
+          }
+        
+          function onSceneChange() {
+            currentScene = multisceneSelect.value;
+            const conf = sceneConfigs[currentScene];
+            const def = conf.default;
+        
+            setSliderOptions(sliders.cfg, conf.cfgValues);
+            setSliderOptions(sliders.strength, conf.strengthValues);
+            setSliderOptions(sliders.scale, conf.scaleValues);
+        
+            updateUI(def.cfg, def.strength, def.scale);
+            showImages(currentScene, "guidance", def.cfg); // show something by default
+          }
+        
+          sliders.cfg.addEventListener("input", () => handleSlider("cfg"));
+          sliders.strength.addEventListener("input", () => handleSlider("strength"));
+          sliders.scale.addEventListener("input", () => handleSlider("scale"));
+          multisceneSelect.addEventListener("change", onSceneChange);
+        
+          // Init
+          onSceneChange();
+        </script>
+
+        
+        
+
+    </div>
+  </div>
+</section>
+<!-- End image carousel -->
+
+
+
+  <!-- Youtube video -->
+  <!-- <section class="hero is-small is-light">
+    <div class="hero-body">
+      <div class="container">
+        <h2 class="title is-3">Video Presentation (coming soon)</h2>
+        <div class="columns is-centered has-text-centered">
+          <div class="column is-four-fifths">
+            <div class="publication-video">
+              <iframe width="560" height="315" src="" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>            </div>          
+          </div>
+        </div>
+      </div>
+    </div>
+  </section> -->
+  <!-- End youtube video -->
+
+
+
+  <!-- Paper poster -->
+  <!-- <section class="hero is-small is-light">
+    <div class="hero-body">
+      <div class="container">
+        <h2 class="title">Poster</h2>
+        <div class="columns is-centered has-text-centered">
+          <div class="column is-four-fifths">
+            <p>Coming Soon</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section> -->
+  <!--End paper poster -->
+
+  <!--BibTex citation -->
+  <section class="section" id="BibTeX">
+    <div class="container is-max-desktop content">
+      <h2 class="title">BibTeX</h2>
+      <pre><code>
+        @misc{hadadan2025generativeenhancementphysicallybased,
+          title={Generative Detail Enhancement for Physically Based Materials}, 
+          author={Saeed Hadadan and Benedikt Bitterli and Tizian Zeltner and Jan Novák and Fabrice Rousselle and Jacob Munkberg and Jon Hasselgren and Bartlomiej Wronski and Matthias Zwicker},
+          year={2025},
+          eprint={2502.13994},
+          archivePrefix={arXiv},
+          primaryClass={cs.GR},
+          url={https://arxiv.org/abs/2502.13994}, 
+    }
+    </code></pre>
+    </div>
+  </section>
+  <!--End BibTex citation -->
+
+
+  <footer class="footer">
+    <div class="container">
+      <div class="columns is-centered">
+        <div class="column is-8">
+          <div class="content">
+
+            <p>
+              This page was built using the <a href="https://github.com/eliahuhorwitz/Academic-project-page-template"
+                target="_blank">Academic Project Page Template</a>.
+              You are free to borrow the of this website, we just ask that you link back to this page in the footer.
+              <br> This website is licensed under a <a rel="license"
+                href="http://creativecommons.org/licenses/by-sa/4.0/" target="_blank">Creative
+                Commons Attribution-ShareAlike 4.0 International License</a>.
+            </p>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Statcounter tracking code -->
+
+  <!-- You can add a tracker to track page visits by creating an account at statcounter.com -->
+
+  <!-- End of Statcounter Code -->
+
+</body>
+
+</html>
