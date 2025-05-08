@@ -473,91 +473,6 @@
 
 
 
-        <!-- New Baseline Comparison (2 Views) -->
-<div class="baseline-comparison-container">
-  <h2 class="title is-4">Effect of consistency on inverse rendering (Figure 9)</h2>
-
-  <div class="comparison-controls">
-    <label for="newViewSlider">View:</label>
-    <input type="range" id="newViewSlider" min="0" max="1" step="1" value="0">
-    <span id="newViewIndex">1</span>
-
-    <label>
-      <input type="radio" name="viewMode" value="normal"> Show View 2
-    </label>
-    <label>
-      <input type="radio" name="viewMode" value="warped" checked> Show Warped View 2
-    </label>
-    <span style="display:inline-block; width: 1px; height: 24px; background: #ccc; margin: 0 12px;"></span>
-
-    <label>
-      <input type="radio" name="imageType" value="generated" checked> Generated
-    </label>
-    <label>
-      <input type="radio" name="imageType" value="recovered"> Recovered
-    </label>
-  </div>
-
-  <div class="new-comparison-row">
-    <div class="new-comparison-box">
-      <p><strong>Controlnet tile + normal</strong></p>
-      <img loading="lazy" id="imgBaseline1" src="" alt="Baseline 1">
-    </div>
-    <div class="new-comparison-box">
-      <p><strong>+Multi-view prompting</strong></p>
-      <img loading="lazy" id="imgBaseline2" src="" alt="Baseline 2">
-    </div>
-    <div class="new-comparison-box">
-      <p><strong>Ours (+attention bias & view correlated noise)</strong></p>
-      <img loading="lazy" id="imgOurs" src="" alt="Ours">
-    </div>
-  </div>
-</div>
-
-
-<!-- Script for New Comparison Section -->
-<script>
-  const newViewSlider = document.getElementById("newViewSlider");
-  const newViewIndex = document.getElementById("newViewIndex");
-  const viewModeRadios = document.getElementsByName("viewMode");
-  const imageTypeRadios = document.getElementsByName("imageType");
-
-  const imgBaseline1 = document.getElementById("imgBaseline1");
-  const imgBaseline2 = document.getElementById("imgBaseline2");
-  const imgOurs = document.getElementById("imgOurs");
-
-  function pad3(n) {
-    return n.toString().padStart(3, '0');
-  }
-
-  function updateNewComparison() {
-    const view = parseInt(newViewSlider.value);
-    const isWarped = [...viewModeRadios].find(r => r.checked).value === "warped";
-    const isRecovered = [...imageTypeRadios].find(r => r.checked).value === "recovered";
-    newViewIndex.textContent = view + 1;
-
-    const typePrefix = isRecovered ? "recovered_default_" : "diffused_";
-    const warpedPrefix = isRecovered ? "warped_default_" : "warped_diffused_";
-    const paddedView = pad3(view);
-
-    if (view === 0 || !isWarped) {
-      imgBaseline1.src = `static/images/inv_rendering/greekvase/inconsistent/${typePrefix}${paddedView}_crop.jpg`;
-      imgBaseline2.src = `static/images/inv_rendering/greekvase/middle/${typePrefix}${paddedView}_crop.jpg`;
-      imgOurs.src      = `static/images/inv_rendering/greekvase/consistent/${typePrefix}${paddedView}_crop.jpg`;
-    } else {
-      imgBaseline1.src = `static/images/inv_rendering/greekvase/inconsistent/${warpedPrefix}000_crop.jpg`;
-      imgBaseline2.src = `static/images/inv_rendering/greekvase/middle/${warpedPrefix}000_crop.jpg`;
-      imgOurs.src      = `static/images/inv_rendering/greekvase/consistent/${warpedPrefix}000_crop.jpg`;
-    }
-  }
-
-  newViewSlider.addEventListener("input", updateNewComparison);
-  viewModeRadios.forEach(r => r.addEventListener("change", updateNewComparison));
-  imageTypeRadios.forEach(r => r.addEventListener("change", updateNewComparison));
-
-  // Initialize
-  updateNewComparison();
-</script>
                 
 
 
@@ -576,7 +491,7 @@
 </div>
 
 <script>
-  const floatValues = ['initial', 0.0, 0.6, 1.2, 1.8, 2.4, 3.0];
+  const floatValues = ['initial', 0.0, 0.6, 1.2, 1.8, 2.4];
   const floatSlider = document.getElementById('floatSlider');
   const floatValueDisplay = document.getElementById('floatValue');
 
@@ -1166,7 +1081,92 @@
 </script>
         
 
+        <!-- New Baseline Comparison (2 Views) -->
+        <div class="baseline-comparison-container">
+          <h2 class="title is-4">Effect of consistency on inverse rendering (Figure 9)</h2>
         
+          <div class="comparison-controls">
+            <label for="newViewSlider">View:</label>
+            <input type="range" id="newViewSlider" min="0" max="1" step="1" value="0">
+            <span id="newViewIndex">1</span>
+        
+            <label>
+              <input type="radio" name="viewMode" value="normal"> Show View 2
+            </label>
+            <label>
+              <input type="radio" name="viewMode" value="warped" checked> Show Warped View 2
+            </label>
+            <span style="display:inline-block; width: 1px; height: 24px; background: #ccc; margin: 0 12px;"></span>
+        
+            <label>
+              <input type="radio" name="imageType" value="generated" checked> Generated
+            </label>
+            <label>
+              <input type="radio" name="imageType" value="recovered"> Recovered
+            </label>
+          </div>
+        
+          <div class="new-comparison-row">
+            <div class="new-comparison-box">
+              <p><strong>Controlnet tile + normal</strong></p>
+              <img loading="lazy" id="imgBaseline1" src="" alt="Baseline 1">
+            </div>
+            <div class="new-comparison-box">
+              <p><strong>+Multi-view prompting</strong></p>
+              <img loading="lazy" id="imgBaseline2" src="" alt="Baseline 2">
+            </div>
+            <div class="new-comparison-box">
+              <p><strong>Ours (+attention bias & view correlated noise)</strong></p>
+              <img loading="lazy" id="imgOurs" src="" alt="Ours">
+            </div>
+          </div>
+        </div>
+        
+        
+        <!-- Script for New Comparison Section -->
+        <script>
+          const newViewSlider = document.getElementById("newViewSlider");
+          const newViewIndex = document.getElementById("newViewIndex");
+          const viewModeRadios = document.getElementsByName("viewMode");
+          const imageTypeRadios = document.getElementsByName("imageType");
+        
+          const imgBaseline1 = document.getElementById("imgBaseline1");
+          const imgBaseline2 = document.getElementById("imgBaseline2");
+          const imgOurs = document.getElementById("imgOurs");
+        
+          function pad3(n) {
+            return n.toString().padStart(3, '0');
+          }
+        
+          function updateNewComparison() {
+            const view = parseInt(newViewSlider.value);
+            const isWarped = [...viewModeRadios].find(r => r.checked).value === "warped";
+            const isRecovered = [...imageTypeRadios].find(r => r.checked).value === "recovered";
+            newViewIndex.textContent = view + 1;
+        
+            const typePrefix = isRecovered ? "recovered_default_" : "diffused_";
+            const warpedPrefix = isRecovered ? "warped_default_" : "warped_diffused_";
+            const paddedView = pad3(view);
+        
+            if (view === 0 || !isWarped) {
+              imgBaseline1.src = `static/images/inv_rendering/greekvase/inconsistent/${typePrefix}${paddedView}_crop.jpg`;
+              imgBaseline2.src = `static/images/inv_rendering/greekvase/middle/${typePrefix}${paddedView}_crop.jpg`;
+              imgOurs.src      = `static/images/inv_rendering/greekvase/consistent/${typePrefix}${paddedView}_crop.jpg`;
+            } else {
+              imgBaseline1.src = `static/images/inv_rendering/greekvase/inconsistent/${warpedPrefix}000_crop.jpg`;
+              imgBaseline2.src = `static/images/inv_rendering/greekvase/middle/${warpedPrefix}000_crop.jpg`;
+              imgOurs.src      = `static/images/inv_rendering/greekvase/consistent/${warpedPrefix}000_crop.jpg`;
+            }
+          }
+        
+          newViewSlider.addEventListener("input", updateNewComparison);
+          viewModeRadios.forEach(r => r.addEventListener("change", updateNewComparison));
+          imageTypeRadios.forEach(r => r.addEventListener("change", updateNewComparison));
+        
+          // Initialize
+          updateNewComparison();
+        </script>
+                
 
     </div>
   </div>
