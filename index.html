@@ -208,6 +208,8 @@
     object-fit: contain;
     border: 1px solid #ccc;
   }
+
+  
 </style>
 
 <!-- Additional hparams -->
@@ -262,6 +264,32 @@
   </style>
 
 
+  <style>
+    /* New 2-View Baseline Comparison Style */
+    .new-comparison-row {
+      display: flex;
+      justify-content: center;
+      gap: 20px; /* smaller gap between images */
+      margin-top: 20px;
+      flex-wrap: nowrap;
+    }
+  
+    .new-comparison-box {
+      flex: 1;
+      max-width: 33%;
+      text-align: center;
+    }
+  
+    .new-comparison-box img {
+      width: 100%;
+      height: auto;
+      max-height: 600px;
+      object-fit: contain;
+      border: 1px solid #ccc;
+    }
+  </style>
+  
+  
 
 
 </head>
@@ -401,56 +429,15 @@
         <br>
                 
         
-        <div class="image-slider-container">
-          <h2>Attention Biasing Strength:</h2>
-          <input type="range" id="floatSlider" min="0" max="6" step="1">
-          <span id="floatValue">initial</span>
-        
-          <div class="image-row">
-            <img loading="lazy" id="img0" src="static/images/hparams_adjusting/initial_0.jpg" alt="Image 0">
-            <img loading="lazy" id="img1" src="static/images/hparams_adjusting/initial_1.jpg" alt="Image 1">
-            <img loading="lazy" id="img2" src="static/images/hparams_adjusting/initial_2.jpg" alt="Image 2">
-            <img loading="lazy" id="img3" src="static/images/hparams_adjusting/initial_3.jpg" alt="Image 3">
-          </div>
-        </div>
-        
-        <script>
-          const floatValues = ['initial', 0.0, 0.6, 1.2, 1.8, 2.4, 3.0];
-          const floatSlider = document.getElementById('floatSlider');
-          const floatValueDisplay = document.getElementById('floatValue');
-        
-          const imageElements = [
-            document.getElementById('img0'),
-            document.getElementById('img1'),
-            document.getElementById('img2'),
-            document.getElementById('img3')
-          ];
-        
-          floatSlider.max = floatValues.length - 1;
-          floatSlider.value = 0;
-        
-          function getCurrentFloatStr() {
-            const val = floatValues[parseInt(floatSlider.value)];
-            return (typeof val === 'number') ? val.toFixed(1) : val;
-          }
-        
-          function updateImages() {
-            const valStr = getCurrentFloatStr();
-            floatValueDisplay.textContent = valStr;
-            for (let i = 0; i < imageElements.length; i++) {
-              imageElements[i].src = `static/images/hparams_adjusting/${valStr}_${i}.jpg`;
-            }
-          }
-        
-          floatSlider.addEventListener('input', updateImages);
-          updateImages();
-        </script>
+
         
 
         
         <div class="view-comparison-container">
-          <h2>36 view generation (Diffusion images (left) - UV-warped (right)):</h2>
+          <h2 class="title is-4">36 view generation</h2>
+          <h2>Diffusion images (left) - UV-warped (right)</h2>
           <input type="range" id="viewSlider" min="0" max="35" step="1">
+          <label for="viewSlider">View Index:</label>
           <span id="viewValue">0</span>
         
           <div class="view-images">
@@ -485,9 +472,140 @@
 
 
 
-        
+
+        <!-- New Baseline Comparison (2 Views) -->
+<div class="baseline-comparison-container">
+  <h2 class="title is-4">Effect of consistency on inverse rendering (Figure 9)</h2>
+
+  <div class="comparison-controls">
+    <label for="newViewSlider">View:</label>
+    <input type="range" id="newViewSlider" min="0" max="1" step="1" value="0">
+    <span id="newViewIndex">1</span>
+
+    <label>
+      <input type="radio" name="viewMode" value="normal"> Show View 2
+    </label>
+    <label>
+      <input type="radio" name="viewMode" value="warped" checked> Show Warped View 2
+    </label>
+    <span style="display:inline-block; width: 1px; height: 24px; background: #ccc; margin: 0 12px;"></span>
+
+    <label>
+      <input type="radio" name="imageType" value="generated" checked> Generated
+    </label>
+    <label>
+      <input type="radio" name="imageType" value="recovered"> Recovered
+    </label>
+  </div>
+
+  <div class="new-comparison-row">
+    <div class="new-comparison-box">
+      <p><strong>Controlnet tile + normal</strong></p>
+      <img loading="lazy" id="imgBaseline1" src="" alt="Baseline 1">
+    </div>
+    <div class="new-comparison-box">
+      <p><strong>+Multi-view prompting</strong></p>
+      <img loading="lazy" id="imgBaseline2" src="" alt="Baseline 2">
+    </div>
+    <div class="new-comparison-box">
+      <p><strong>Ours (+attention bias & view correlated noise)</strong></p>
+      <img loading="lazy" id="imgOurs" src="" alt="Ours">
+    </div>
+  </div>
+</div>
 
 
+<!-- Script for New Comparison Section -->
+<script>
+  const newViewSlider = document.getElementById("newViewSlider");
+  const newViewIndex = document.getElementById("newViewIndex");
+  const viewModeRadios = document.getElementsByName("viewMode");
+  const imageTypeRadios = document.getElementsByName("imageType");
+
+  const imgBaseline1 = document.getElementById("imgBaseline1");
+  const imgBaseline2 = document.getElementById("imgBaseline2");
+  const imgOurs = document.getElementById("imgOurs");
+
+  function pad3(n) {
+    return n.toString().padStart(3, '0');
+  }
+
+  function updateNewComparison() {
+    const view = parseInt(newViewSlider.value);
+    const isWarped = [...viewModeRadios].find(r => r.checked).value === "warped";
+    const isRecovered = [...imageTypeRadios].find(r => r.checked).value === "recovered";
+    newViewIndex.textContent = view + 1;
+
+    const typePrefix = isRecovered ? "recovered_default_" : "diffused_";
+    const warpedPrefix = isRecovered ? "warped_default_" : "warped_diffused_";
+    const paddedView = pad3(view);
+
+    if (view === 0 || !isWarped) {
+      imgBaseline1.src = `static/images/inv_rendering/greekvase/inconsistent/${typePrefix}${paddedView}_crop.jpg`;
+      imgBaseline2.src = `static/images/inv_rendering/greekvase/middle/${typePrefix}${paddedView}_crop.jpg`;
+      imgOurs.src      = `static/images/inv_rendering/greekvase/consistent/${typePrefix}${paddedView}_crop.jpg`;
+    } else {
+      imgBaseline1.src = `static/images/inv_rendering/greekvase/inconsistent/${warpedPrefix}000_crop.jpg`;
+      imgBaseline2.src = `static/images/inv_rendering/greekvase/middle/${warpedPrefix}000_crop.jpg`;
+      imgOurs.src      = `static/images/inv_rendering/greekvase/consistent/${warpedPrefix}000_crop.jpg`;
+    }
+  }
+
+  newViewSlider.addEventListener("input", updateNewComparison);
+  viewModeRadios.forEach(r => r.addEventListener("change", updateNewComparison));
+  imageTypeRadios.forEach(r => r.addEventListener("change", updateNewComparison));
+
+  // Initialize
+  updateNewComparison();
+</script>
+                
+
+
+<div class="image-slider-container">
+  <h2 class="title is-4">Attention Biasing Strength (Figure 4)</h2>
+  <h2>Strength: (in this case 1.2 and 1.8 is recommended) </h2>
+  <input type="range" id="floatSlider" min="0" max="6" step="1">
+  <span id="floatValue">initial</span>
+
+  <div class="image-row">
+    <img loading="lazy" id="img0" src="static/images/hparams_adjusting/initial_0.jpg" alt="Image 0">
+    <img loading="lazy" id="img1" src="static/images/hparams_adjusting/initial_1.jpg" alt="Image 1">
+    <img loading="lazy" id="img2" src="static/images/hparams_adjusting/initial_2.jpg" alt="Image 2">
+    <img loading="lazy" id="img3" src="static/images/hparams_adjusting/initial_3.jpg" alt="Image 3">
+  </div>
+</div>
+
+<script>
+  const floatValues = ['initial', 0.0, 0.6, 1.2, 1.8, 2.4, 3.0];
+  const floatSlider = document.getElementById('floatSlider');
+  const floatValueDisplay = document.getElementById('floatValue');
+
+  const imageElements = [
+    document.getElementById('img0'),
+    document.getElementById('img1'),
+    document.getElementById('img2'),
+    document.getElementById('img3')
+  ];
+
+  floatSlider.max = floatValues.length - 1;
+  floatSlider.value = 0;
+
+  function getCurrentFloatStr() {
+    const val = floatValues[parseInt(floatSlider.value)];
+    return (typeof val === 'number') ? val.toFixed(1) : val;
+  }
+
+  function updateImages() {
+    const valStr = getCurrentFloatStr();
+    floatValueDisplay.textContent = valStr;
+    for (let i = 0; i < imageElements.length; i++) {
+      imageElements[i].src = `static/images/hparams_adjusting/${valStr}_${i}.jpg`;
+    }
+  }
+
+  floatSlider.addEventListener('input', updateImages);
+  updateImages();
+</script>
 
 
         <div class="scene-slider-container">
@@ -498,7 +616,8 @@
               <option value="woodenbox">Wooden Box</option>
               <option value="AC">AC</option>
               <option value="kettle">Kettle</option>
-              <option value="statue">statue</option>
+              <option value="statue">Statue</option>
+              <option value="greekvase">Greek vase</option>
               <option value="pot">Pot</option>
               <option value="pots">Pottery Vases</option>
               <option value="briefcase">Briefcase</option>
@@ -569,6 +688,7 @@
             pots: 16,
             briefcase: 9,
             david: 9,
+            greekvase: 16,
           };
         
           const sceneSelect = document.getElementById("sceneSelect");
@@ -635,7 +755,7 @@
           <div class="comparison-controls">
             <label for="baselineSceneSelect">Scene:</label>
             <select id="baselineSceneSelect">
-              <option value="statue">statue</option>
+              <option value="statue">Statue</option>
               <option value="briefcase">Briefcase</option>
               <option value="woodenbox">Wooden Box</option>
               <option value="kettle">Kettle</option>
@@ -756,13 +876,13 @@
 
 
         <div class="combined-slider-container">
-          <h2 class="title is-4">Additional hyper-parameters</h2>
+          <h2 class="title is-4">Additional hyper-parameters (Figures 21 and 22)</h2>
         
           <div class="slider-controls">
             <div class="slider-row">
               <label for="multiSceneSelect">Scene:</label>
               <select id="multiSceneSelect">
-                <option value="statue">statue</option>
+                <option value="statue">Statue</option>
                 <option value="woodenbox">Wooden Box</option>
               </select>
             </div>
@@ -894,7 +1014,158 @@
           onSceneChange();
         </script>
 
+
+<!-- Ablation Study Section -->
+<div class="baseline-comparison-container">
+  <h2 class="title is-4">Ablation (Figures 8 and 23)</h2>
+
+  <div class="comparison-controls">
+    <label for="ablationSceneSelect">Scene:</label>
+    <select id="ablationSceneSelect">
+      <option value="greekvase">Greek Vase</option>
+      <option value="briefcase">Briefcase</option>
+      <!-- Add more scenes as needed -->
+    </select>
+
+    <label for="ablationViewSlider">View:</label>
+    <input type="range" id="ablationViewSlider" min="0" max="1" step="1" value="0">
+    <span id="ablationViewIndex">1</span>
+
+    <label>
+      <input type="radio" name="ablationViewMode" value="normal"> Show View 2
+    </label>
+    <label>
+      <input type="radio" name="ablationViewMode" value="warped" checked> Show Warped View 2
+    </label>
+  </div>
+
+  <!-- Row 1: Full images with captions -->
+  <div class="ablation-row">
+    <div class="ablation-box">
+      <p><strong>Conditioning images</strong></p>
+      <img loading="lazy" id="ablationImg0" src="" alt="Conditioning">
+    </div>
+    <div class="ablation-box">
+      <p><strong>Baseline: M-view prompting</strong></p>
+      <img loading="lazy" id="ablationImg1" src="" alt="Baseline">
+    </div>
+    <div class="ablation-box">
+      <p><strong>+ ControlNet tile</strong></p>
+      <img loading="lazy" id="ablationImg2" src="" alt="Tile">
+    </div>
+    <div class="ablation-box">
+      <p><strong>+ View-correlated noise</strong></p>
+      <img loading="lazy" id="ablationImg3" src="" alt="Noise">
+    </div>
+    <div class="ablation-box">
+      <p><strong>+ Attention bias (full model)</strong></p>
+      <img loading="lazy" id="ablationImg4" src="" alt="Attention Bias">
+    </div>
+  </div>
+
+  <!-- Row 2: Cropped versions -->
+  <div class="ablation-row">
+    <div class="ablation-box">
+      <img loading="lazy" id="ablationCropImg0" src="" alt="Crop 0">
+    </div>
+    <div class="ablation-box">
+      <img loading="lazy" id="ablationCropImg1" src="" alt="Crop 1">
+    </div>
+    <div class="ablation-box">
+      <img loading="lazy" id="ablationCropImg2" src="" alt="Crop 2">
+    </div>
+    <div class="ablation-box">
+      <img loading="lazy" id="ablationCropImg3" src="" alt="Crop 3">
+    </div>
+    <div class="ablation-box">
+      <img loading="lazy" id="ablationCropImg4" src="" alt="Crop 4">
+    </div>
+  </div>
+</div>
+
+<!-- Style -->
+<style>
+  .ablation-row {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 20px;
+    flex-wrap: nowrap;
+  }
+
+  .ablation-box {
+    flex: 1;
+    max-width: 20%;
+    text-align: center;
+  }
+
+  .ablation-box img {
+    width: 100%;
+    height: auto;
+    max-height: 500px;
+    object-fit: contain;
+    border: 1px solid #ccc;
+  }
+</style>
+
+<!-- Script -->
+<script>
+  const ablationSceneSelect = document.getElementById("ablationSceneSelect");
+  const ablationViewSlider = document.getElementById("ablationViewSlider");
+  const ablationViewIndex = document.getElementById("ablationViewIndex");
+  const ablationViewModeRadios = document.getElementsByName("ablationViewMode");
+
+  const ablationImages = [
+    document.getElementById("ablationImg0"),
+    document.getElementById("ablationImg1"),
+    document.getElementById("ablationImg2"),
+    document.getElementById("ablationImg3"),
+    document.getElementById("ablationImg4")
+  ];
+
+  const ablationCropImages = [
+    document.getElementById("ablationCropImg0"),
+    document.getElementById("ablationCropImg1"),
+    document.getElementById("ablationCropImg2"),
+    document.getElementById("ablationCropImg3"),
+    document.getElementById("ablationCropImg4")
+  ];
+
+  const ablationFilenames = [
+    "initial",
+    "no_cnet",
+    "white_nop2p",
+    "warped_nop2p",
+    "full"
+  ];
+
+  function updateAblationImages() {
+    const scene = ablationSceneSelect.value;
+    const view = parseInt(ablationViewSlider.value);
+    const isWarped = [...ablationViewModeRadios].find(r => r.checked).value === "warped";
+    ablationViewIndex.textContent = view + 1;
+
+    for (let i = 0; i < ablationFilenames.length; i++) {
+      const name = ablationFilenames[i];
+      if (view === 0 || !isWarped) {
+        ablationImages[i].src = `static/images/ablation/${scene}/${name}_${view}.jpg`;
+        ablationCropImages[i].src = `static/images/ablation/${scene}/${name}_crop_${view}.jpg`;
+      } else {
+        ablationImages[i].src = `static/images/ablation/${scene}/${name}_0_WARPED.jpg`;
+        ablationCropImages[i].src = `static/images/ablation/${scene}/${name}_WARPEDcrop_0.jpg`;
+      }
+    }
+  }
+
+  ablationSceneSelect.addEventListener("change", updateAblationImages);
+  ablationViewSlider.addEventListener("input", updateAblationImages);
+  ablationViewModeRadios.forEach(r => r.addEventListener("change", updateAblationImages));
+
+  // Init
+  updateAblationImages();
+</script>
         
+
         
 
     </div>
